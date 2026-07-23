@@ -21,11 +21,19 @@ if(!searchInput) {
     console.log("Error in getting 'search-input' input");
 }
 
-searchInput.addEventListener('keypress', function(e) {
-    if(e.key === 'Enter') {
+// Instant Ajax Request - at least 2 characters before suggesting and debounce ~300ms after the last keystroke
+var debounceTimer = null;
+searchInput.addEventListener('keyup', function(event) {
+    if (event.key === 'Enter'){
+        clearTimeout(debounceTimer);
         search();
         searchInput.value = ''; // clear the field after an explicit Enter search
+        return;
     }
+    clearTimeout(debounceTimer);
+    var query = searchInput.value.trim();
+    if (query.length < 2) return;               // AC5: need at least 2 characters before suggesting
+    debounceTimer = setTimeout(search, 300);    // AC7: debounce ~300ms after the last keystroke
 });
 
 const BASE_URL = "https://nguye8tu-uscities-microservices-gmebhjdvhmcxa2fe.canadacentral-01.azurewebsites.net/"
@@ -68,9 +76,9 @@ function data_sanitize(v){
 }
 function json2htmltable(data){
     if (!Array.isArray(data) || data.length === 0) return "No cities found"; // AC10/AC11
-    var rows = data.map(function (c) {
-        return "<tr><td>" + data_sanitize(c.city) + "</td><td>" + data_sanitize(c.state_name) + 
-                "</td><td>" + data_sanitize(c.zips) + "</td></tr>";
+    var items = data.map(function (c) {
+        return '<li class="city-card"><strong>' + data_sanitize(c.city) + '</strong>, ' + 
+        data_sanitize(c.state_name) + ' <span class ="zips">' + data_sanitize(c.zips) + '</span></li>';
     }).join('');
-    return "<table><tr><th>City</th><th>State</th><th>Zips</th></tr>" + rows + "</table>";
+    return '<ul class="city-list">' + items + '</ul>';
 }
